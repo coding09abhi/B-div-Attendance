@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%">
+  <defs>
+    <!-- Curved paths for text alignment -->
+    <path id="textArcTop" d="M 70,250 A 180,180 0 1,1 430,250" />
+    <path id="textArcSubTop" d="M 95,250 A 155,155 0 1,1 405,250" />
+    <path id="textArcBottom" d="M 100,250 A 150,150 0 0,0 400,250" />
+
+    <!-- Five Stars Definition -->
+    <g id="star">
+      <polygon points="0,-15 4,-4 15,-4 7,3 10,14 0,7 -10,14 -7,3 -15,-4 -4,-4" fill="#A87A13" stroke="#825C0B" stroke-width="0.5"/>
+    </g>
+
+    <!-- Drop Shadow Filter for Text -->
+    <filter id="dropShadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="2" dy="2" stdDeviation="1.5" flood-color="#888888" flood-opacity="0.8"/>
+    </filter>
+  </defs>
+
+  <!-- Outer Gradient Swoosh / Globe Background -->
+  <circle cx="250" cy="250" r="235" fill="none" stroke="#1D2057" stroke-width="25" opacity="0.9" />
+  <circle cx="250" cy="250" r="225" fill="none" stroke="#2B5BFF" stroke-width="30" stroke-dasharray="800 200" stroke-dashoffset="-100" />
+  <circle cx="250" cy="250" r="200" fill="#FFFFFF" />
+
+  <!-- Background Tech Patterns / Icons Silhouette -->
+  <g opacity="0.15" stroke="#333333" stroke-width="1.5" fill="none">
+    <!-- Grid & Tech Elements -->
+    <circle cx="250" cy="250" r="160" stroke-dasharray="4 4"/>
+    <rect x="150" y="140" width="40" height="30" rx="3"/>
+    <rect x="310" y="140" width="40" height="30" rx="3"/>
+    <rect x="130" y="300" width="35" height="35" rx="3"/>
+    <rect x="330" y="300" width="35" height="35" rx="3"/>
+    <circle cx="170" cy="230" r="18"/>
+    <circle cx="330" cy="230" r="18"/>
+    <path d="M 200,120 L 220,100 L 280,100 L 300,120" />
+    <path d="M 180,330 L 200,360 L 300,360 L 320,330" />
+  </g>
+
+  <!-- Central Character (Developer at Laptop) -->
+  <g transform="translate(0, -5)">
+    <!-- Person Outline -->
+    <path d="M 250,135 Q 235,135 235,150 Q 235,165 250,165 Q 265,165 265,150 Q 265,135 250,135 Z" fill="#222222" /> <!-- Hair/Head -->
+    <circle cx="250" cy="165" r="16" fill="#FCE0D8" /> <!-- Face -->
+    <!-- Glasses -->
+    <circle cx="244" cy="163" r="4" fill="none" stroke="#333" stroke-width="1.5"/>
+    <circle cx="256" cy="163" r="4" fill="none" stroke="#333" stroke-width="1.5"/>
+    <line x1="248" y1="163" x2="252" y2="163" stroke="#333" stroke-width="1.5"/>
+    
+    <!-- Body / Jacket -->
+    <path d="M 210,240 C 210,190 230,180 250,180 C 270,180 290,190 290,240 Z" fill="#FFFFFF" stroke="#333333" stroke-width="2"/>
+    <path d="M 235,180 L 250,210 L 265,180" fill="none" stroke="#333333" stroke-width="2"/> <!-- Inner Shirt/Collar -->
+    
+    <!-- Laptop -->
+    <rect x="215" y="215" width="70" height="42" rx="4" fill="#777777" stroke="#444444" stroke-width="2"/>
+    <path d="M 205,257 L 295,257 L 290,262 L 210,262 Z" fill="#555555"/>
+  </g>
+
+  <!-- Subtitle Text inside background (INNOVATE WITH TECHNOLOGY) -->
+  <g font-family="Arial, sans-serif" font-weight="bold" text-anchor="middle" fill="#3B6FE9" opacity="0.85">
+    <text x="250" y="290" font-size="16" letter-spacing="3">INNOVATE</text>
+    <text x="250" y="315" font-size="14" letter-spacing="2">WITH</text>
+    <text x="250" y="340" font-size="15" letter-spacing="2">TECHNOLOGY</text>
+  </g>
+
+  <!-- Arc Stars -->
+  <g transform="translate(0, 10)">
+    <use href="#star" x="200" y="362" transform="rotate(-12, 200, 362)"/>
+    <use href="#star" x="223" y="371" transform="rotate(-6, 223, 371)"/>
+    <use href="#star" x="250" y="375" transform="scale(1.2) translate(-41, -78)"/>
+    <use href="#star" x="277" y="371" transform="rotate(6, 277, 371)"/>
+    <use href="#star" x="300" y="362" transform="rotate(12, 300, 362)"/>
+  </g>
+
+  <!-- Curved Top Text: KLE'S BK BCA COLLEGE -->
+  <text font-family="'Impact', 'Arial Black', sans-serif" font-size="26" fill="#111111" filter="url(#dropShadow)" letter-spacing="2">
+    <textPath href="#textArcTop" startOffset="50%" text-anchor="middle">
+      KLE's BK BCA COLLEGE
+    </textPath>
+  </text>
+
+  <!-- Curved Sub-Top Text: V B Div -->
+  <text font-family="'Impact', 'Arial Black', sans-serif" font-size="22" fill="#111111" filter="url(#dropShadow)" letter-spacing="2">
+    <textPath href="#textArcSubTop" startOffset="50%" text-anchor="middle">
+      V B DIV
+    </textPath>
+  </text>
+
+  <!-- Curved Bottom Text: CHIKODI -->
+  <text font-family="'Impact', 'Arial Black', sans-serif" font-size="32" fill="#111111" filter="url(#dropShadow)" letter-spacing="4">
+    <textPath href="#textArcBottom" startOffset="50%" text-anchor="middle">
+      CHIKODI
+    </textPath>
+  </text>
+</svg>
