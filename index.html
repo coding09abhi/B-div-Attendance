@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>B-Div 5th Sem | CR Attendance Portal (54 Students)</title>
+  <meta name="description" content="Professional college attendance manager for B-Division 5th Sem CRs. 54 students, theory & 2-batch labs, whole day absentees, dynamic CR sync.">
+  <meta name="theme-color" content="#1e293b">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <!-- PeerJS for Free Real-Time P2P CR Sync without any database -->
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- PIN LOCK SCREEN OVERLAY -->
+  <div id="pinOverlay" class="pin-overlay active">
+    <div class="pin-card">
+      <div class="pin-header">
+        <div class="pin-security-badge">CR Access Portal</div>
+        <h2>B-Div 5th Sem</h2>
+        <p class="pin-subtitle">Enter 4-Digit Security PIN (Boy CR & Girl CR)</p>
+      </div>
+
+      <div class="pin-display">
+        <div class="pin-dots">
+          <span class="pin-dot" id="dot0"></span>
+          <span class="pin-dot" id="dot1"></span>
+          <span class="pin-dot" id="dot2"></span>
+          <span class="pin-dot" id="dot3"></span>
+        </div>
+        <p id="pinError" class="pin-error-msg"></p>
+      </div>
+
+      <!-- Keypad -->
+      <div class="keypad-grid">
+        <button type="button" class="key-btn" onclick="handleKeyInput('1')">1</button>
+        <button type="button" class="key-btn" onclick="handleKeyInput('2')">2</button>
+        <button type="button" class="key-btn" onclick="handleKeyInput('3')">3</button>
+        <button type="button" class="key-btn" onclick="handleKeyInput('4')">4</button>
+        <button type="button" class="key-btn" onclick="handleKeyInput('5')">5</button>
+        <button type="button" class="key-btn" onclick="handleKeyInput('6')">6</button>
+        <button type="button" class="key-btn" onclick="handleKeyInput('7')">7</button>
+        <button type="button" class="key-btn" onclick="handleKeyInput('8')">8</button>
+        <button type="button" class="key-btn" onclick="handleKeyInput('9')">9</button>
+        <button type="button" class="key-btn text-btn" onclick="clearPin()">Clear</button>
+        <button type="button" class="key-btn" onclick="handleKeyInput('0')">0</button>
+        <button type="button" class="key-btn text-btn" onclick="deletePin()">⌫</button>
+      </div>
+
+      <div class="pin-footer">
+        <span>Default PIN: <strong>5555</strong> (Changeable in Settings)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN APP CONTAINER -->
+  <div id="appContainer" class="app-container">
+    <!-- Top Bar -->
+    <header class="app-header">
+      <div class="header-branding">
+        <div class="class-pill">B-DIV • 5th SEM • 54 STUDENTS</div>
+        <h1 class="header-title">CR Attendance Register</h1>
+        <div class="header-date" id="currentDateDisplay">Loading date...</div>
+      </div>
+
+      <div class="header-right">
+        <!-- Live Dynamic Sync Status Badge -->
+        <button id="syncStatusBtn" class="sync-status-pill" title="Dynamic CR Sync Status">
+          <span class="sync-indicator offline" id="syncIndicator"></span>
+          <span id="syncText">CR Sync</span>
+        </button>
+        <button id="themeToggleBtn" class="header-icon-btn" title="Toggle Theme" aria-label="Toggle Theme">
+          <span id="themeIcon">☀️</span>
+        </button>
+        <button id="lockAppBtn" class="header-icon-btn" title="Lock App" aria-label="Lock App">
+          🔒
+        </button>
+      </div>
+    </header>
+
+    <!-- CR Role & Quick Sync Banner -->
+    <section class="role-bar">
+      <div class="role-selector">
+        <button class="role-toggle-btn active" id="boyCrBtn" onclick="setCrRole('boy')">
+          👦 Boy CR
+        </button>
+        <button class="role-toggle-btn" id="girlCrBtn" onclick="setCrRole('girl')">
+          👧 Girl CR
+        </button>
+      </div>
+
+      <div class="share-sync-action">
+        <button class="btn btn-outline btn-xs" id="shareSyncLinkBtn" onclick="shareLiveSyncLink()">
+          🔗 Send Live Data to Co-CR
+        </button>
+      </div>
+    </section>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-bar">
+      <button class="nav-tab active" data-tab="attendanceTab">
+        <span class="tab-icon">📝</span>
+        <span>Mark Class</span>
+      </button>
+      <button class="nav-tab" data-tab="reportTab">
+        <span class="tab-icon">📋</span>
+        <span>Book Report</span>
+      </button>
+      <button class="nav-tab" data-tab="studentsTab">
+        <span class="tab-icon">👥</span>
+        <span>Students (54)</span>
+      </button>
+      <button class="nav-tab" data-tab="settingsTab">
+        <span class="tab-icon">⚙️</span>
+        <span>Sync & Settings</span>
+      </button>
+    </nav>
+
+    <!-- TAB 1: MARK ATTENDANCE -->
+    <main id="attendanceTab" class="tab-content active">
+      <!-- Date Scroll Bar -->
+      <div class="date-bar">
+        <div class="date-bar-label">
+          <span>SELECT DATE</span>
+          <button id="todayBtn" class="btn btn-xs btn-outline">Today</button>
+        </div>
+        <div class="date-scroll" id="weekDatesRow">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+
+      <!-- Whole Day Absent Warning / Quick Bar -->
+      <section class="whole-day-absent-strip" id="wholeDayAbsentStrip">
+        <div class="wda-info">
+          <span class="wda-tag">🚨 Whole Day Absentees:</span>
+          <span class="wda-rolls" id="wholeDayAbsentRollsDisplay">None marked today</span>
+        </div>
+        <button class="btn btn-xs btn-wda" onclick="openWholeDayAbsentModal()">
+          + Mark Whole Day Absent
+        </button>
+      </section>
+
+      <!-- Lecture / Period Selector Strip -->
+      <section class="period-section">
+        <div class="section-row">
+          <div>
+            <span class="sub-label">TODAY'S CLASSES & LABS</span>
+            <h3 id="activePeriodTitle" class="active-period-title">Select or Add Class</h3>
+          </div>
+          <button id="addPeriodBtn" class="btn btn-primary btn-sm">
+            + Add Lecture / Lab
+          </button>
+        </div>
+
+        <div class="period-pills-row" id="periodChipsContainer">
+          <!-- Periods injected here -->
+        </div>
+      </section>
+
+      <!-- Active Class Attendance Marking Area -->
+      <section id="markingArea" class="marking-area hidden">
+        <!-- Lab Batch Notice (Only shown if current period is a Lab) -->
+        <div id="labBatchBanner" class="lab-batch-banner hidden">
+          <div class="lbb-left">
+            <span class="batch-badge" id="labBatchBadge">BATCH 1</span>
+            <span id="labBatchInfo">Roll 1 to 27</span>
+          </div>
+          <button class="btn btn-xs btn-outline" onclick="openAddLectureModal()">+ Add Another Batch</button>
+        </div>
+
+        <!-- Live Metrics Bar -->
+        <div class="metrics-bar">
+          <div class="metric-item">
+            <span class="metric-val" id="totalCountDisplay">54</span>
+            <span class="metric-lbl">Total</span>
+          </div>
+          <div class="metric-item metric-present">
+            <span class="metric-val" id="presentCountDisplay">0</span>
+            <span class="metric-lbl">Present</span>
+          </div>
+          <div class="metric-item metric-absent">
+            <span class="metric-val" id="absentCountDisplay">0</span>
+            <span class="metric-lbl">Absent</span>
+          </div>
+          <div class="metric-item metric-pct">
+            <span class="metric-val" id="percentageDisplay">0%</span>
+            <span class="metric-lbl">Attendance</span>
+          </div>
+        </div>
+
+        <!-- Quick Marking Actions -->
+        <div class="quick-actions-bar">
+          <button id="markAllPresentBtn" class="btn btn-action btn-p-light">
+            ✓ All Present
+          </button>
+          <button id="markAllAbsentBtn" class="btn btn-action btn-a-light">
+            ✕ All Absent
+          </button>
+          <button id="quickAbsentModalBtn" class="btn btn-action btn-neutral">
+            ⚡ Quick Absent Rolls
+          </button>
+        </div>
+
+        <!-- Search & Filter Controls -->
+        <div class="filter-bar">
+          <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="studentSearchInput" placeholder="Filter by roll (e.g. 14) or name..." autocomplete="off">
+            <button id="clearSearchBtn" class="clear-btn hidden">✕</button>
+          </div>
+
+          <div class="filter-pills" id="filterPillsContainer">
+            <button class="filter-pill active" data-filter="all">All</button>
+            <button class="filter-pill" data-filter="batch1">Batch 1 (1-27)</button>
+            <button class="filter-pill" data-filter="batch2">Batch 2 (28-54)</button>
+            <button class="filter-pill" data-filter="absent">Absentees</button>
+            <button class="filter-pill" data-filter="present">Present</button>
+          </div>
+        </div>
+
+        <!-- Student Cards Grid -->
+        <div class="students-grid-container">
+          <div class="grid-header-note">
+            <span>Tap card to toggle <strong>P</strong> / <strong>A</strong></span>
+            <span id="filteredCountInfo">Showing 54</span>
+          </div>
+
+          <div class="students-grid" id="studentsAttendanceGrid">
+            <!-- 54 Student cards rendered here -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Empty State -->
+      <div id="noPeriodsState" class="empty-state hidden">
+        <div class="empty-icon">📖</div>
+        <h3>No Classes Added for Today</h3>
+        <p>Add SE, C#, CS, WCMS, FullStack, Aptitude, R, or Lab batches to start taking attendance.</p>
+        <button id="addFirstPeriodBtn" class="btn btn-primary">
+          + Add First Class / Lab
+        </button>
+      </div>
+    </main>
+
+    <!-- TAB 2: DAILY BOOK REPORT -->
+    <main id="reportTab" class="tab-content">
+      <div class="card report-top-card">
+        <div class="report-header-flex">
+          <div>
+            <span class="sub-label">END-OF-DAY REGISTER REPORT</span>
+            <h2 class="report-main-title">College Register Report</h2>
+            <p class="report-subtitle" id="reportDateSubtitle">For B-Division 5th Sem Book Entry</p>
+          </div>
+          <div class="report-download-actions">
+            <button id="copyWhatsAppBtn" class="btn btn-whatsapp btn-sm">
+              💬 WhatsApp Copy
+            </button>
+            <button id="downloadTextReportBtn" class="btn btn-outline btn-sm">
+              📄 Download Text
+            </button>
+            <button id="exportCsvBtn" class="btn btn-outline btn-sm">
+              📊 Excel / CSV
+            </button>
+            <button id="printReportBtn" class="btn btn-secondary btn-sm">
+              🖨️ Print / PDF
+            </button>
+          </div>
+        </div>
+
+        <div class="lecture-summary-chips" id="reportLectureBar">
+          <!-- Summary chips -->
+        </div>
+      </div>
+
+      <!-- 1. WHOLE DAY ABSENT HIGHLIGHT (Crucial for College Books!) -->
+      <section class="card wda-report-card">
+        <div class="card-title-row">
+          <h3>🚨 Whole Day Absentees (Absent All Day)</h3>
+          <span class="badge badge-danger" id="wdaCountBadge">0 Students</span>
+        </div>
+        <p class="card-instruction">
+          Students absent for <strong>all lectures</strong> today. Directly enter these in your register book under whole-day leave:
+        </p>
+        <div class="wda-result-box" id="wdaReportBox">
+          No students absent for the whole day.
+        </div>
+      </section>
+
+      <!-- 2. PARTICULAR CLASS ABSENT SUMMARY (Fastest for Register Book Entry) -->
+      <section class="card">
+        <div class="card-title-row">
+          <h3>⚡ Class-by-Class Absentee List</h3>
+          <span class="badge badge-neutral">Quick Register Entry</span>
+        </div>
+        <p class="card-instruction">
+          Quickly enter 'A' in the physical register for each subject's absent roll numbers:
+        </p>
+        <div class="absent-classes-grid" id="absenteeSummaryContainer">
+          <!-- Populated with each lecture's absent roll numbers -->
+        </div>
+      </section>
+
+      <!-- 3. COMPLETE BOOK REGISTER MATRIX (ROLL 1 - 54) -->
+      <section class="card printable-matrix-card">
+        <div class="card-title-row">
+          <h3>📖 Complete Register Sheet Matrix (Roll 1 - 54)</h3>
+          <span class="badge badge-outline">Batch 1 (1-27) & Batch 2 (28-54)</span>
+        </div>
+        <p class="card-instruction">
+          Side-by-side view matching your physical college register columns:
+        </p>
+
+        <div class="table-wrap">
+          <table class="register-table" id="registerMatrixTable">
+            <thead>
+              <tr id="matrixTableHead">
+                <th class="sticky-roll">Roll</th>
+                <th class="sticky-name">Name</th>
+                <!-- Period columns -->
+                <th>Total P</th>
+                <th>Total A</th>
+              </tr>
+            </thead>
+            <tbody id="matrixTableBody">
+              <!-- 54 Student rows -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <!-- TAB 3: STUDENTS DIRECTORY (54 STUDENTS) -->
+    <main id="studentsTab" class="tab-content">
+      <div class="card">
+        <div class="section-row">
+          <div>
+            <span class="sub-label">CLASS ROSTER</span>
+            <h2>B-Div 5th Sem (54 Students)</h2>
+            <p class="card-instruction">Divided into 2 Lab Batches: Batch 1 (1-27) and Batch 2 (28-54)</p>
+          </div>
+          <button id="quickEditStudentsBtn" class="btn btn-outline btn-sm">
+            ✏️ Edit Names
+          </button>
+        </div>
+
+        <div class="batch-split-summary">
+          <div class="batch-info-card">
+            <h4>Batch 1 (Roll 1 - 27)</h4>
+            <p>27 Students • Typically Boy CR or Batch 1 CR</p>
+          </div>
+          <div class="batch-info-card">
+            <h4>Batch 2 (Roll 28 - 54)</h4>
+            <p>27 Students • Typically Girl CR or Batch 2 CR</p>
+          </div>
+        </div>
+
+        <div class="table-wrap" style="margin-top: 1rem;">
+          <table class="students-table">
+            <thead>
+              <tr>
+                <th width="70">Roll #</th>
+                <th>Student Name</th>
+                <th width="140">Lab Batch</th>
+                <th width="90">Edit</th>
+              </tr>
+            </thead>
+            <tbody id="studentsRosterBody">
+              <!-- 54 Students -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+
+    <!-- TAB 4: SETTINGS & DYNAMIC CR SYNC -->
+    <main id="settingsTab" class="tab-content">
+      <!-- Dynamic Real-time CR Sync (Zero Database / Zero Cost) -->
+      <div class="card sync-settings-card">
+        <div class="card-title-row">
+          <h3>🔄 Dynamic CR Sync (Boy CR ↔ Girl CR)</h3>
+          <span class="badge badge-accent">100% Free • No Database Needed</span>
+        </div>
+        <p class="card-instruction">
+          Both CRs can view and update attendance dynamically on their own phones without any paid database!
+        </p>
+
+        <div class="sync-tools-grid">
+          <div class="sync-tool-box">
+            <h4>Method 1: 1-Tap WhatsApp Live Link (Most Reliable)</h4>
+            <p>Boy CR or Girl CR takes attendance $\rightarrow$ tap below to generate an instant live sync link to send via WhatsApp. When the other CR taps the link, all classes and attendance are instantly merged!</p>
+            <button class="btn btn-whatsapp btn-sm" onclick="shareLiveSyncLink()">
+              📲 Send Sync Link via WhatsApp
+            </button>
+          </div>
+
+          <div class="sync-tool-box">
+            <h4>Method 2: Live Room P2P Sync (WebRTC)</h4>
+            <p>Connect both phones to a shared room. Any mark by Boy CR or Girl CR updates dynamically:</p>
+            <div class="room-input-row">
+              <input type="text" id="customRoomInput" class="form-input" value="bdiv-sem5-cr" placeholder="Room ID">
+              <button class="btn btn-primary btn-sm" id="connectRoomBtn" onclick="connectLiveRoom()">
+                Connect Room
+              </button>
+            </div>
+            <div id="p2pStatusLog" class="p2p-log">Status: Disconnected</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Security PIN -->
+      <div class="card">
+        <h3>🔒 CR Security PIN</h3>
+        <p class="card-instruction">Prevent classmates from editing attendance when accessing your link.</p>
+        <div class="inline-form">
+          <input type="password" id="newPinInput" maxlength="4" placeholder="Enter new 4-digit PIN" class="form-input">
+          <button id="savePinBtn" class="btn btn-primary">Update PIN</button>
+        </div>
+      </div>
+
+      <!-- Storage & Safe Retention -->
+      <div class="card">
+        <h3>💾 Safe Local Storage (Never Clears Mid-Day)</h3>
+        <p class="card-instruction">
+          Attendance is automatically saved locally on this phone. It will <strong>never clear in the middle of the day</strong>. Records are only cleared safely after 7 days or when you manually reset.
+        </p>
+        <div class="storage-metrics">
+          <div>Status: <strong style="color: #10b981;">Active & Protected</strong></div>
+          <div id="storageUsageDisplay">Calculating...</div>
+        </div>
+        <div class="danger-actions-row">
+          <button id="clearTodayDataBtn" class="btn btn-outline-danger btn-sm">
+            🗑️ Clear Today's Records
+          </button>
+          <button id="resetAllDataBtn" class="btn btn-outline-danger btn-sm">
+            ⚠️ Reset All 7-Day History
+          </button>
+        </div>
+      </div>
+
+      <!-- Backup JSON -->
+      <div class="card">
+        <h3>📁 Manual Backup & Restore</h3>
+        <div class="backup-btn-row">
+          <button id="exportDataBtn" class="btn btn-outline btn-sm">
+            📤 Download Backup (JSON)
+          </button>
+          <label class="btn btn-outline btn-sm upload-label">
+            📥 Import Backup (JSON)
+            <input type="file" id="importFileInput" accept=".json" style="display: none;">
+          </label>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- MODAL: ADD LECTURE / LAB -->
+  <div id="lectureModal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-top">
+        <h3 id="lectureModalTitle">Add Class / Lab</h3>
+        <button class="close-modal-btn" onclick="closeLectureModal()">✕</button>
+      </div>
+
+      <form id="lectureForm" onsubmit="handleSaveLecture(event)">
+        <input type="hidden" id="editLectureId" value="">
+
+        <!-- Quick Subject Chips -->
+        <div class="form-item">
+          <label>Select 5th Sem Subject:</label>
+          <div class="subject-chips" id="presetSubjectChips">
+            <!-- Theory chips: SE, C#, CS, WCMS, FullStack, Aptitude, R -->
+          </div>
+          <label style="margin-top: 8px;">Select Lab (Divided in 2 Batches):</label>
+          <div class="subject-chips" id="presetLabChips">
+            <!-- Lab chips: SE Lab, R Lab, FullStack Lab -->
+          </div>
+          <input type="text" id="lectureSubjectInput" placeholder="Subject Name" required class="form-input" style="margin-top: 8px;">
+        </div>
+
+        <!-- If Lab is selected: Batch Option -->
+        <div class="form-item" id="batchSelectSection">
+          <label>Batch Selection for this Class / Lab:</label>
+          <select id="lectureBatchSelect" class="form-input">
+            <option value="all">Entire Class (54 Students: Roll 1 to 54)</option>
+            <option value="batch1">Batch 1 Only (27 Students: Roll 1 to 27)</option>
+            <option value="batch2">Batch 2 Only (27 Students: Roll 28 to 54)</option>
+          </select>
+          <small class="field-hint">For Labs, pick Batch 1 (Boy CR) or Batch 2 (Girl CR) so only those 27 students appear!</small>
+        </div>
+
+        <div class="form-row">
+          <div class="form-item col-half">
+            <label for="lecturePeriodNumber">Period / Slot:</label>
+            <select id="lecturePeriodNumber" class="form-input">
+              <option value="Period 1">Period 1</option>
+              <option value="Period 2">Period 2</option>
+              <option value="Period 3">Period 3</option>
+              <option value="Period 4">Period 4</option>
+              <option value="Period 5">Period 5</option>
+              <option value="Period 6">Period 6</option>
+              <option value="Lab Slot 1">Lab Slot 1</option>
+              <option value="Lab Slot 2">Lab Slot 2</option>
+            </select>
+          </div>
+
+          <div class="form-item col-half">
+            <label for="lectureFacultyInput">Faculty (Optional):</label>
+            <input type="text" id="lectureFacultyInput" placeholder="e.g. Prof. Kumar" class="form-input">
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="closeLectureModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Class</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: QUICK ABSENTEE ROLLS ENTRY FOR ACTIVE CLASS -->
+  <div id="quickAbsentModal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-top">
+        <h3>⚡ Rapid Absent Rolls (This Class)</h3>
+        <button class="close-modal-btn" onclick="closeQuickAbsentModal()">✕</button>
+      </div>
+      <p class="modal-desc">
+        Type absent roll numbers separated by commas. These will be marked <strong>Absent (A)</strong>, and all others <strong>Present (P)</strong>:
+      </p>
+
+      <div class="form-item">
+        <textarea id="absentRollsInput" rows="3" placeholder="e.g. 4, 18, 29, 45" class="form-input code-font"></textarea>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeQuickAbsentModal()">Cancel</button>
+        <button type="button" class="btn btn-danger" onclick="applyQuickAbsentees()">Mark Absentees</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: WHOLE DAY ABSENT ENTRY (Absent in all classes today) -->
+  <div id="wholeDayAbsentModal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-top">
+        <h3>🚨 Mark Whole Day Absentees</h3>
+        <button class="close-modal-btn" onclick="closeWholeDayAbsentModal()">✕</button>
+      </div>
+      <p class="modal-desc">
+        Enter roll numbers of students who are absent for the <strong>entire day</strong> (all classes). They will automatically be marked Absent in all periods today and flagged in the end-of-day register:
+      </p>
+
+      <div class="form-item">
+        <textarea id="wholeDayRollsInput" rows="3" placeholder="e.g. 7, 23, 41" class="form-input code-font"></textarea>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeWholeDayAbsentModal()">Cancel</button>
+        <button type="button" class="btn btn-danger" onclick="applyWholeDayAbsentees()">Apply Whole Day Absent</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: EDIT STUDENT NAMES -->
+  <div id="editStudentsModal" class="modal-overlay">
+    <div class="modal-box modal-wide">
+      <div class="modal-top">
+        <h3>✏️ Edit Student Names (54 Students)</h3>
+        <button class="close-modal-btn" onclick="closeEditStudentsModal()">✕</button>
+      </div>
+      <p class="modal-desc">Customize student names for B-Div 5th Sem. Roll 1-27 (Batch 1), Roll 28-54 (Batch 2).</p>
+      
+      <div class="student-edit-scroll" id="editStudentsFormContainer">
+        <!-- 54 input items -->
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeEditStudentsModal()">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="saveCustomStudents()">Save Roster</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

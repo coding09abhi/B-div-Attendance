@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4f46e5"/>
+      <stop offset="50%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#c026d3"/>
+    </linearGradient>
+    <linearGradient id="checkGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="128" fill="url(#bgGrad)"/>
+  
+  <!-- Clipboard / Book Backing -->
+  <rect x="110" y="100" width="292" height="340" rx="24" fill="#0f172a" fill-opacity="0.85" stroke="#ffffff" stroke-width="6" stroke-opacity="0.2"/>
+  <rect x="186" y="75" width="140" height="48" rx="16" fill="#3b82f6"/>
+  
+  <!-- Register Lines -->
+  <line x1="160" y1="180" x2="352" y2="180" stroke="#94a3b8" stroke-width="12" stroke-linecap="round"/>
+  <line x1="160" y1="235" x2="352" y2="235" stroke="#94a3b8" stroke-width="12" stroke-linecap="round"/>
+  <line x1="160" y1="290" x2="352" y2="290" stroke="#94a3b8" stroke-width="12" stroke-linecap="round"/>
+  
+  <!-- Glowing Check Circle -->
+  <circle cx="340" cy="350" r="70" fill="url(#checkGrad)" stroke="#ffffff" stroke-width="8"/>
+  <path d="M312 350 L332 370 L372 330" fill="none" stroke="#ffffff" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
